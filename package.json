@@ -1,0 +1,21 @@
+{
+  "name": "airwallex-guardrails",
+  "version": "1.0.0",
+  "description": "Autonomous Agent Spend & Ephemeral Virtual Card Controller powered by Airwallex Issuing API",
+  "type": "module",
+  "main": "src/agent_card_controller.mjs",
+  "scripts": {
+    "test": "node test/agent_card_controller.test.mjs",
+    "demo": "node demo.mjs"
+  },
+  "keywords": [
+    "airwallex",
+    "agentic-banking",
+    "ai-agents",
+    "spend-guard",
+    "virtual-cards",
+    "hackathon"
+  ],
+  "author": "Siddharth Srivastava",
+  "license": "MIT"
+}
