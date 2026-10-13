@@ -82,7 +82,32 @@ async function runTests() {
   assert.equal(trail.length, 7);
   console.log('✅ Test 7 Passed: Tamper-evident audit trail integrity verified');
 
-  console.log('\n🎉 ALL 7/7 AIRWALLEX GUARDRAILS TESTS PASSED PERFECTLY!\n');
+  const verifyValid = controller.verifyAuditTrail();
+  assert.equal(verifyValid.valid, true);
+  assert.equal(verifyValid.count, 7);
+  assert.ok(verifyValid.headHash);
+  console.log('✅ Test 8 Passed: SHA-256 cryptographic chain verification succeeds');
+
+  const originalAmount = controller.auditLog[2].requestedAmount;
+  controller.auditLog[2].requestedAmount = 999999.0;
+  const tamperResult = controller.verifyAuditTrail();
+  assert.equal(tamperResult.valid, false);
+  controller.auditLog[2].requestedAmount = originalAmount;
+  console.log('✅ Test 9 Passed: Cryptographic tampering detected and rejected');
+
+  const telemetry = controller.getTelemetry();
+  assert.equal(telemetry.agentId, 'agent_groq_buyer');
+  assert.equal(telemetry.totalTransactions, 7);
+  assert.equal(telemetry.approvedCount, 3);
+  assert.equal(telemetry.deniedCount, 4);
+  console.log('✅ Test 10 Passed: Telemetry state metrics strictly consistent');
+
+  controller.updatePolicy({ maxPerTx: 100.0, maxRollingEpoch: 500.0 });
+  assert.equal(controller.policy.maxPerTx, 100.0);
+  assert.equal(controller.policy.maxRollingEpoch, 500.0);
+  console.log('✅ Test 11 Passed: Dynamic policy limits successfully updated');
+
+  console.log('\n🎉 ALL 11/11 AIRWALLEX GUARDRAILS TESTS PASSED PERFECTLY!\n');
 }
 
 runTests().catch((err) => {

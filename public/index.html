@@ -1,0 +1,886 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Airwallex GuardRails | Autonomous Agent Treasury Firewall</title>
+  <meta name="description" content="Autonomous Agent Spend & Ephemeral Virtual Card Controller powered by Airwallex Issuing API. Deterministic risk firewalls, policy limits, and tamper-evident SHA-256 audit ledgers.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #070a12;
+      --card-bg: rgba(15, 23, 42, 0.75);
+      --card-border: rgba(56, 189, 248, 0.2);
+      --accent-cyan: #00e5ff;
+      --accent-blue: #2563eb;
+      --accent-indigo: #6366f1;
+      --accent-green: #10b981;
+      --accent-red: #ef4444;
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+      --mono: 'JetBrains Mono', monospace;
+      --sans: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background-color: var(--bg);
+      background-image: 
+        radial-gradient(at 0% 0%, rgba(0, 229, 255, 0.08) 0px, transparent 50%),
+        radial-gradient(at 100% 100%, rgba(37, 99, 235, 0.12) 0px, transparent 50%);
+      color: var(--text-main);
+      font-family: var(--sans);
+      min-height: 100vh;
+      padding: 24px;
+    }
+
+    .container {
+      max-width: 1400px;
+      margin: 0 auto;
+    }
+
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding-bottom: 24px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      margin-bottom: 24px;
+      flex-wrap: wrap;
+      gap: 16px;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .logo-badge {
+      width: 44px;
+      height: 44px;
+      background: linear-gradient(135deg, #00e5ff, #0052cc);
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 800;
+      font-size: 20px;
+      color: #fff;
+      box-shadow: 0 0 20px rgba(0, 229, 255, 0.35);
+    }
+
+    h1 {
+      font-size: 24px;
+      font-weight: 700;
+      letter-spacing: -0.5px;
+    }
+
+    .subtitle {
+      font-size: 13px;
+      color: var(--text-muted);
+    }
+
+    .status-bar {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .chip {
+      padding: 6px 14px;
+      border-radius: 9999px;
+      font-size: 12px;
+      font-weight: 600;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .chip-green {
+      background: rgba(16, 185, 129, 0.15);
+      color: #34d399;
+      border: 1px solid rgba(16, 185, 129, 0.3);
+    }
+
+    .chip-red {
+      background: rgba(239, 68, 68, 0.15);
+      color: #f87171;
+      border: 1px solid rgba(239, 68, 68, 0.3);
+    }
+
+    .chip-pulse::before {
+      content: '';
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: currentColor;
+      box-shadow: 0 0 8px currentColor;
+    }
+
+    /* Grid Layout */
+    .dashboard-grid {
+      display: grid;
+      grid-template-columns: 420px 1fr;
+      gap: 24px;
+      margin-bottom: 24px;
+    }
+
+    @media (max-width: 1024px) {
+      .dashboard-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .glass-card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 16px;
+      padding: 24px;
+      backdrop-filter: blur(12px);
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
+    }
+
+    /* Virtual Card Display */
+    .virtual-card-wrapper {
+      perspective: 1000px;
+      margin-bottom: 24px;
+    }
+
+    .virtual-card {
+      background: linear-gradient(135deg, #09172e 0%, #0d2b52 50%, #081a38 100%);
+      border: 1px solid rgba(0, 229, 255, 0.3);
+      border-radius: 18px;
+      padding: 24px;
+      position: relative;
+      overflow: hidden;
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5), 0 0 30px rgba(0, 229, 255, 0.15);
+      min-height: 230px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+
+    .virtual-card::after {
+      content: '';
+      position: absolute;
+      top: -50%;
+      right: -20%;
+      width: 250px;
+      height: 250px;
+      background: radial-gradient(circle, rgba(0, 229, 255, 0.2) 0%, transparent 70%);
+      pointer-events: none;
+    }
+
+    .card-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .card-issuer {
+      font-size: 14px;
+      font-weight: 700;
+      letter-spacing: 1px;
+      color: var(--accent-cyan);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .card-chip-graphic {
+      width: 38px;
+      height: 28px;
+      background: linear-gradient(135deg, #ffd700, #b8860b);
+      border-radius: 6px;
+      border: 1px solid rgba(255, 255, 255, 0.3);
+    }
+
+    .card-number {
+      font-family: var(--mono);
+      font-size: 19px;
+      letter-spacing: 2px;
+      color: #fff;
+      margin: 20px 0;
+      text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+    }
+
+    .card-meta {
+      display: flex;
+      justify-content: space-between;
+      font-size: 11px;
+      color: #94a3b8;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .card-meta-val {
+      color: #fff;
+      font-weight: 600;
+      font-size: 13px;
+      margin-top: 2px;
+      font-family: var(--mono);
+    }
+
+    /* Metric HUD */
+    .metric-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-top: 16px;
+    }
+
+    .metric-box {
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      border-radius: 12px;
+      padding: 14px;
+    }
+
+    .metric-label {
+      font-size: 11px;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      font-weight: 600;
+    }
+
+    .metric-value {
+      font-size: 20px;
+      font-weight: 700;
+      color: #fff;
+      margin-top: 4px;
+      font-family: var(--mono);
+    }
+
+    /* Progress bar */
+    .budget-bar-container {
+      margin-top: 14px;
+    }
+
+    .budget-bar-label {
+      display: flex;
+      justify-content: space-between;
+      font-size: 12px;
+      margin-bottom: 6px;
+      color: var(--text-muted);
+    }
+
+    .progress-track {
+      background: rgba(255, 255, 255, 0.08);
+      border-radius: 999px;
+      height: 8px;
+      overflow: hidden;
+    }
+
+    .progress-fill {
+      background: linear-gradient(90deg, #00e5ff, #2563eb);
+      height: 100%;
+      width: 100%;
+      transition: width 0.4s ease;
+    }
+
+    /* Action Panels */
+    .panel-title {
+      font-size: 16px;
+      font-weight: 700;
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .btn-group {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+
+    @media (max-width: 640px) {
+      .btn-group {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .btn {
+      padding: 12px 16px;
+      border-radius: 10px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      border: 1px solid transparent;
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 4px;
+      transition: all 0.2s ease;
+      background: rgba(255, 255, 255, 0.05);
+      color: #fff;
+      text-align: left;
+    }
+
+    .btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    }
+
+    .btn-desc {
+      font-size: 11px;
+      color: var(--text-muted);
+      font-weight: 400;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, rgba(0, 229, 255, 0.15), rgba(37, 99, 235, 0.15));
+      border-color: rgba(0, 229, 255, 0.4);
+    }
+
+    .btn-primary:hover {
+      border-color: var(--accent-cyan);
+      box-shadow: 0 0 16px rgba(0, 229, 255, 0.3);
+    }
+
+    .btn-danger {
+      background: rgba(239, 68, 68, 0.1);
+      border-color: rgba(239, 68, 68, 0.3);
+    }
+
+    .btn-danger:hover {
+      border-color: var(--accent-red);
+      box-shadow: 0 0 16px rgba(239, 68, 68, 0.3);
+    }
+
+    .btn-killswitch {
+      background: linear-gradient(135deg, #ef4444, #991b1b);
+      color: #fff;
+      width: 100%;
+      align-items: center;
+      padding: 14px;
+      font-size: 14px;
+      margin-top: 10px;
+    }
+
+    /* Form Styles */
+    .form-group {
+      margin-bottom: 14px;
+    }
+
+    .form-label {
+      display: block;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text-muted);
+      margin-bottom: 6px;
+    }
+
+    .form-input, .form-select {
+      width: 100%;
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 8px;
+      padding: 10px 14px;
+      color: #fff;
+      font-family: var(--sans);
+      font-size: 13px;
+      outline: none;
+      transition: border 0.2s;
+    }
+
+    .form-input:focus, .form-select:focus {
+      border-color: var(--accent-cyan);
+    }
+
+    /* Audit Ledger Table */
+    .table-container {
+      overflow-x: auto;
+      margin-top: 16px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 12px;
+      font-family: var(--mono);
+    }
+
+    th {
+      background: rgba(255, 255, 255, 0.03);
+      color: var(--text-muted);
+      font-weight: 600;
+      text-align: left;
+      padding: 12px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      text-transform: uppercase;
+      font-size: 11px;
+    }
+
+    td {
+      padding: 12px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+      color: #cbd5e1;
+    }
+
+    tr:hover td {
+      background: rgba(255, 255, 255, 0.02);
+    }
+
+    .tag-approved {
+      color: #34d399;
+      background: rgba(16, 185, 129, 0.15);
+      padding: 3px 8px;
+      border-radius: 4px;
+      border: 1px solid rgba(16, 185, 129, 0.3);
+      font-weight: 600;
+    }
+
+    .tag-denied {
+      color: #f87171;
+      background: rgba(239, 68, 68, 0.15);
+      padding: 3px 8px;
+      border-radius: 4px;
+      border: 1px solid rgba(239, 68, 68, 0.3);
+      font-weight: 600;
+    }
+
+    .hash-snippet {
+      font-size: 11px;
+      color: #64748b;
+      max-width: 130px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      display: inline-block;
+    }
+
+    /* Toast Notification */
+    #toast {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      background: rgba(15, 23, 42, 0.95);
+      border: 1px solid var(--accent-cyan);
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+      padding: 16px 20px;
+      border-radius: 12px;
+      color: #fff;
+      display: none;
+      z-index: 999;
+      max-width: 400px;
+      animation: slideIn 0.3s ease;
+    }
+
+    @keyframes slideIn {
+      from { transform: translateY(20px); opacity: 0; }
+      to { transform: translateY(0); opacity: 1; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <div class="brand">
+        <div class="logo-badge">AW</div>
+        <div>
+          <h1>Airwallex GuardRails</h1>
+          <div class="subtitle">Autonomous Agent Spend & Virtual Card Controller · Airwallex Issuing API</div>
+        </div>
+      </div>
+      <div class="status-bar">
+        <span id="policyStatusBadge" class="chip chip-green chip-pulse">POLICY ACTIVE</span>
+        <span id="ledgerProofBadge" class="chip chip-green">⛓️ SHA-256 LEDGER VERIFIED</span>
+      </div>
+    </header>
+
+    <div class="dashboard-grid">
+      <!-- Left Column: Virtual Card & Telemetry -->
+      <div>
+        <div class="virtual-card-wrapper">
+          <div class="virtual-card" id="cardGraphic">
+            <div class="card-top">
+              <div class="card-issuer">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
+                </svg>
+                AIRWALLEX VIRTUAL
+              </div>
+              <div class="card-chip-graphic"></div>
+            </div>
+            <div>
+              <div class="card-number" id="displayPan">4111 11•• •••• 1925</div>
+              <div class="card-meta">
+                <div>
+                  <div>CARDHOLDER</div>
+                  <div class="card-meta-val" id="displayAgentId">AGENT_PROCURE_01</div>
+                </div>
+                <div>
+                  <div>EXPIRES / CVV</div>
+                  <div class="card-meta-val" id="displayExpiry">12/28 · <span id="displayCvv">192</span></div>
+                </div>
+                <div>
+                  <div>LIMIT</div>
+                  <div class="card-meta-val" id="displayLimit">$14.50 USD</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="glass-card">
+          <h2 class="panel-title">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--accent-cyan)" stroke-width="2">
+              <rect x="2" y="3" width="20" height="14" rx="2" ry="2"/>
+              <line x1="8" y1="21" x2="16" y2="21"/>
+              <line x1="12" y1="17" x2="12" y2="21"/>
+            </svg>
+            Treasury Telemetry
+          </h2>
+
+          <div class="budget-bar-container">
+            <div class="budget-bar-label">
+              <span>Rolling 24h Epoch Spend</span>
+              <span id="budgetPercentLabel">$0.00 / $200.00 (0%)</span>
+            </div>
+            <div class="progress-track">
+              <div class="progress-fill" id="budgetProgressFill" style="width: 0%;"></div>
+            </div>
+          </div>
+
+          <div class="metric-row">
+            <div class="metric-box">
+              <div class="metric-label">Remaining Budget</div>
+              <div class="metric-value" id="hudRemaining">$200.00</div>
+            </div>
+            <div class="metric-box">
+              <div class="metric-label">Single-Tx Cap</div>
+              <div class="metric-value" id="hudMaxTx">$50.00</div>
+            </div>
+          </div>
+
+          <div class="metric-row">
+            <div class="metric-box">
+              <div class="metric-label">Approved Cards</div>
+              <div class="metric-value" style="color: #34d399;" id="hudApproved">0</div>
+            </div>
+            <div class="metric-box">
+              <div class="metric-label">Denied Attempts</div>
+              <div class="metric-value" style="color: #f87171;" id="hudDenied">0</div>
+            </div>
+          </div>
+
+          <button id="btnKillswitch" class="btn btn-killswitch" onclick="toggleKillSwitch()">
+            🚨 TRIGGER EMERGENCY KILL-SWITCH
+          </button>
+        </div>
+      </div>
+
+      <!-- Right Column: Interactive Simulators & Request Form -->
+      <div>
+        <div class="glass-card" style="margin-bottom: 24px;">
+          <h2 class="panel-title">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--accent-cyan)" stroke-width="2">
+              <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>
+            </svg>
+            Interactive Attack & Stress Test Scenarios
+          </h2>
+          <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 16px;">
+            Execute live adversarial prompts, runaway consumption spikes, and compliant agent transactions with one click.
+          </p>
+
+          <div class="btn-group">
+            <button class="btn btn-primary" onclick="simulatePreset('groq')">
+              <span>⚡ Groq Llama-3.3 ($14.50)</span>
+              <span class="btn-desc">Valid AI inference batch · Instant card issuance</span>
+            </button>
+            <button class="btn btn-primary" onclick="simulatePreset('pinecone')">
+              <span>⚡ Pinecone Vector DB ($42.00)</span>
+              <span class="btn-desc">Valid data feed indexing · Single-use token</span>
+            </button>
+            <button class="btn btn-danger" onclick="simulatePreset('adversarial')">
+              <span>🛑 Prompt Injection ($35.00)</span>
+              <span class="btn-desc">Offshore Casino · Merchant category violation</span>
+            </button>
+            <button class="btn btn-danger" onclick="simulatePreset('overdraw')">
+              <span>🛑 Runaway GPU Loop ($180.00)</span>
+              <span class="btn-desc">Exceeds $50 per-tx ceiling · Instant fail-closed</span>
+            </button>
+          </div>
+
+          <div style="border-top: 1px solid rgba(255, 255, 255, 0.08); padding-top: 16px;">
+            <h3 style="font-size: 14px; margin-bottom: 12px; color: #e2e8f0;">Manual Agent Spend Request</h3>
+            <form id="requestCardForm" onsubmit="handleManualRequest(event)">
+              <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; margin-bottom: 12px;">
+                <div class="form-group" style="margin-bottom: 0;">
+                  <label class="form-label">Amount ($)</label>
+                  <input type="number" step="0.01" class="form-input" id="reqAmount" value="25.00" required>
+                </div>
+                <div class="form-group" style="margin-bottom: 0;">
+                  <label class="form-label">Currency</label>
+                  <select class="form-select" id="reqCurrency">
+                    <option value="USD">USD ($)</option>
+                    <option value="EUR">EUR (€)</option>
+                    <option value="GBP">GBP (£)</option>
+                    <option value="SGD">SGD (S$)</option>
+                    <option value="AUD">AUD (A$)</option>
+                  </select>
+                </div>
+                <div class="form-group" style="margin-bottom: 0;">
+                  <label class="form-label">Merchant Category</label>
+                  <select class="form-select" id="reqCategory">
+                    <option value="AI_INFERENCE">AI_INFERENCE</option>
+                    <option value="CLOUD_COMPUTE">CLOUD_COMPUTE</option>
+                    <option value="DATA_FEEDS">DATA_FEEDS</option>
+                    <option value="DEVELOPER_TOOLS">DEVELOPER_TOOLS</option>
+                    <option value="LUXURY_RETAIL">LUXURY_RETAIL (Disallowed)</option>
+                    <option value="GAMBLING_CASINO">GAMBLING_CASINO (Disallowed)</option>
+                  </select>
+                </div>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Purchase Purpose</label>
+                <input type="text" class="form-input" id="reqPurpose" value="Modal Labs H100 GPU fine-tuning slice" required>
+              </div>
+              <button type="submit" class="btn btn-primary" style="width: 100%; align-items: center; padding: 12px;">
+                💳 Request Ephemeral Virtual Card
+              </button>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Cryptographic Audit Ledger Table -->
+    <div class="glass-card">
+      <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
+        <h2 class="panel-title" style="margin-bottom: 0;">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--accent-cyan)" stroke-width="2">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+            <polyline points="14 2 14 8 20 8"/>
+            <line x1="16" y1="13" x2="8" y2="13"/>
+            <line x1="16" y1="17" x2="8" y2="17"/>
+            <polyline points="10 9 9 9 8 9"/>
+          </svg>
+          Tamper-Evident SHA-256 Audit Trail
+        </h2>
+        <button class="btn btn-primary" style="padding: 8px 16px; flex-direction: row; align-items: center;" onclick="verifyLedger()">
+          🔍 Recalculate Cryptographic Proof
+        </button>
+      </div>
+
+      <div class="table-container">
+        <table>
+          <thead>
+            <tr>
+              <th>Tx ID</th>
+              <th>Timestamp</th>
+              <th>Status</th>
+              <th>Category</th>
+              <th>Amount</th>
+              <th>Card Token</th>
+              <th>Parent Hash</th>
+              <th>Block Hash</th>
+            </tr>
+          </thead>
+          <tbody id="ledgerTableBody">
+            <tr>
+              <td colspan="8" style="text-align: center; color: var(--text-muted); padding: 24px;">
+                No transactions recorded yet. Run a scenario above.
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <div id="toast"></div>
+
+  <script>
+    let isRevoked = false;
+
+    async function fetchStatus() {
+      try {
+        const res = await fetch('/api/status');
+        const data = await res.json();
+        if (data.success) {
+          updateUI(data.telemetry);
+        }
+      } catch (err) {
+        console.error('Error fetching status:', err);
+      }
+    }
+
+    async function fetchLedger() {
+      try {
+        const res = await fetch('/api/audit-trail');
+        const data = await res.json();
+        if (data.success) {
+          renderLedger(data.trail);
+        }
+      } catch (err) {
+        console.error('Error fetching ledger:', err);
+      }
+    }
+
+    function updateUI(t) {
+      isRevoked = !t.active;
+      const statusBadge = document.getElementById('policyStatusBadge');
+      const killBtn = document.getElementById('btnKillswitch');
+
+      if (t.active) {
+        statusBadge.className = 'chip chip-green chip-pulse';
+        statusBadge.textContent = 'POLICY ACTIVE';
+        killBtn.className = 'btn btn-killswitch';
+        killBtn.textContent = '🚨 TRIGGER EMERGENCY KILL-SWITCH';
+      } else {
+        statusBadge.className = 'chip chip-red chip-pulse';
+        statusBadge.textContent = 'REVOKED / LOCKED OUT';
+        killBtn.className = 'btn btn-primary';
+        killBtn.style.width = '100%';
+        killBtn.style.alignItems = 'center';
+        killBtn.textContent = '🔄 REINSTATE AGENT POLICY';
+      }
+
+      document.getElementById('hudRemaining').textContent = `$${t.remainingBudget.toFixed(2)}`;
+      document.getElementById('hudMaxTx').textContent = `$${t.maxPerTx.toFixed(2)}`;
+      document.getElementById('hudApproved').textContent = t.approvedCount;
+      document.getElementById('hudDenied').textContent = t.deniedCount;
+
+      const spent = t.epochSpend;
+      const total = t.maxRollingEpoch;
+      const percent = Math.min(100, (spent / total) * 100);
+      document.getElementById('budgetProgressFill').style.width = `${percent}%`;
+      document.getElementById('budgetPercentLabel').textContent = `$${spent.toFixed(2)} / $${total.toFixed(2)} (${percent.toFixed(0)}%)`;
+    }
+
+    function renderLedger(trail) {
+      const tbody = document.getElementById('ledgerTableBody');
+      if (!trail || trail.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="8" style="text-align: center; color: var(--text-muted); padding: 24px;">No transactions recorded yet. Run a scenario above.</td></tr>`;
+        return;
+      }
+
+      tbody.innerHTML = trail.map((tx, idx) => {
+        const isApproved = tx.status === 'ISSUED';
+        const tag = isApproved ? '<span class="tag-approved">ISSUED</span>' : `<span class="tag-denied">${tx.reason || 'DENIED'}</span>`;
+        const cardDisplay = tx.panMasked ? `${tx.panMasked}` : '—';
+        return `
+          <tr>
+            <td style="color: #67e8f9;">${tx.txId}</td>
+            <td style="color: #94a3b8;">${new Date(tx.timestamp).toLocaleTimeString()}</td>
+            <td>${tag}</td>
+            <td>${tx.merchantCategory}</td>
+            <td style="font-weight: 700; color: #fff;">$${tx.requestedAmount.toFixed(2)}</td>
+            <td>${cardDisplay}</td>
+            <td><span class="hash-snippet" title="${tx.prevHash}">${tx.prevHash}</span></td>
+            <td><span class="hash-snippet" title="${tx.hash}">${tx.hash}</span></td>
+          </tr>
+        `;
+      }).reverse().join('');
+    }
+
+    async function simulatePreset(scenario) {
+      try {
+        const res = await fetch('/api/simulate-preset', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ scenario }),
+        });
+        const data = await res.json();
+        
+        if (data.success) {
+          showToast(`✅ Ephemeral Card Minted! ${data.card.panMasked} ($${data.card.spendingLimit})`);
+          document.getElementById('displayPan').textContent = data.card.panMasked;
+          document.getElementById('displayCvv').textContent = data.card.cvv;
+          document.getElementById('displayLimit').textContent = `$${data.card.spendingLimit.toFixed(2)} USD`;
+        } else {
+          showToast(`❌ Denied: ${data.error}`);
+        }
+
+        if (data.telemetry) updateUI(data.telemetry);
+        fetchLedger();
+      } catch (err) {
+        showToast(`❌ Error: ${err.message}`);
+      }
+    }
+
+    async function handleManualRequest(e) {
+      e.preventDefault();
+      const amount = parseFloat(document.getElementById('reqAmount').value);
+      const currency = document.getElementById('reqCurrency').value;
+      const merchantCategory = document.getElementById('reqCategory').value;
+      const purpose = document.getElementById('reqPurpose').value;
+
+      try {
+        const res = await fetch('/api/card/request', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ amount, currency, merchantCategory, purpose }),
+        });
+        const data = await res.json();
+
+        if (data.success) {
+          showToast(`✅ Card Issued: ${data.card.panMasked} ($${data.card.spendingLimit} ${data.card.currency})`);
+          document.getElementById('displayPan').textContent = data.card.panMasked;
+          document.getElementById('displayCvv').textContent = data.card.cvv;
+          document.getElementById('displayLimit').textContent = `$${data.card.spendingLimit.toFixed(2)} ${data.card.currency}`;
+        } else {
+          showToast(`❌ Denied: ${data.error}`);
+        }
+
+        if (data.telemetry) updateUI(data.telemetry);
+        fetchLedger();
+      } catch (err) {
+        showToast(`❌ Error: ${err.message}`);
+      }
+    }
+
+    async function toggleKillSwitch() {
+      const endpoint = isRevoked ? '/api/policy/reinstate' : '/api/policy/revoke';
+      try {
+        const res = await fetch(endpoint, { method: 'POST' });
+        const data = await res.json();
+        showToast(data.message);
+        if (data.telemetry) updateUI(data.telemetry);
+      } catch (err) {
+        showToast(`❌ Error: ${err.message}`);
+      }
+    }
+
+    async function verifyLedger() {
+      try {
+        const res = await fetch('/api/audit-verify');
+        const data = await res.json();
+        if (data.proof && data.proof.valid) {
+          showToast(`🔒 Cryptographic Ledger 100% Valid! (${data.proof.count} blocks verified)`);
+          document.getElementById('ledgerProofBadge').textContent = `⛓️ ${data.proof.count} BLOCKS VALIDATED`;
+        } else {
+          showToast(`⚠️ Tampering detected: ${data.proof.error}`);
+        }
+      } catch (err) {
+        showToast(`❌ Verification failed: ${err.message}`);
+      }
+    }
+
+    function showToast(msg) {
+      const toast = document.getElementById('toast');
+      toast.textContent = msg;
+      toast.style.display = 'block';
+      setTimeout(() => {
+        toast.style.display = 'none';
+      }, 4000);
+    }
+
+    // Init
+    fetchStatus();
+    fetchLedger();
+    setInterval(fetchStatus, 3000);
+  </script>
+</body>
+</html>

@@ -5,6 +5,7 @@
   "type": "module",
   "main": "src/agent_card_controller.mjs",
   "scripts": {
+    "start": "node src/server.mjs",
     "test": "node test/agent_card_controller.test.mjs",
     "demo": "node demo.mjs"
   },
