@@ -53,6 +53,8 @@ npm start
 # 🏦 Airwallex GuardRails Console running at http://localhost:4100
 ```
 
+![Airwallex GuardRails Treasury Cockpit](airwallex-cockpit.png)
+
 Features included:
 - **Live Virtual Card Graphic**: Dynamic 3D card display showing masked PAN, CVV, single-use status badge, and assigned budget limit.
 - **Treasury Telemetry HUD**: Real-time 24h rolling budget burn progress bar, single-tx ceiling, and approved vs. denied counter.
